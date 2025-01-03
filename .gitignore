@@ -1,171 +1,81 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+import streamlit as st
 
-# C extensions
-*.so
+def calculate_cabinet_and_digits(allowed_sq_ft, digit_ranges, maverik_height_ratio=0.5, price_changer_type="2"):
+    # Adjust digit ranges based on Price Changer type
+    adjusted_digit_ranges = {}
+    for digit_size, (min_width, max_width, min_height, max_height) in digit_ranges.items():
+        if price_changer_type == "4":
+            adjusted_digit_ranges[digit_size] = (min_width, max_width, min_height * 2, max_height * 2)
+        else:
+            adjusted_digit_ranges[digit_size] = (min_width, max_width, min_height, max_height)
+    
+    # Iterate over digit sizes, starting from the largest
+    for digit_size, (min_width, max_width, min_height, max_height) in sorted(adjusted_digit_ranges.items(), key=lambda x: -x[0]):
+        max_width_ft = max_width / 12
+        max_height_ft = max_height / 12
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+        # Calculate Maverik Cabinet dimensions
+        maverik_height_ft = max_width_ft * maverik_height_ratio
+        maverik_sq_ft = max_width_ft * maverik_height_ft
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+        # Calculate Sunshine Cabinet square footage
+        sunshine_sq_ft = max_width_ft * max_height_ft
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+        # Total square footage
+        total_sq_ft = maverik_sq_ft + sunshine_sq_ft
+        leftover_sq_ft = allowed_sq_ft - total_sq_ft
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
+        # Check if it fits within allowed square footage
+        if total_sq_ft <= allowed_sq_ft:
+            return {
+                "digit_size": digit_size,
+                "sunshine_width": max_width,
+                "sunshine_height": max_height,
+                "maverik_width": max_width,
+                "maverik_height": maverik_height_ft * 12,
+                "total_sq_ft_used": total_sq_ft,
+                "leftover_sq_ft": leftover_sq_ft
+            }
+    
+    # If no feasible configuration is found
+    return None
 
-# Translations
-*.mo
-*.pot
+# Define digit ranges: (min_width, max_width, min_height, max_height) in inches
+digit_ranges = {
+    10: (56, 60, 22, 24),
+    13: (72, 78, 27, 29),
+    16: (83, 90, 30, 32),
+    20: (102, 108, 35, 38),
+    24: (108, 126, 42, 44),
+    28: (126, 144, 47, 51),
+    32: (144, 170, 52, 56),
+    36: (196, 222, 64, 64),
+    40: (207, 232, 66, 72),
+    48: (252, 288, 77, 84),
+    61: (316, 364, 94, 105),
+    76: (368, 416, 111, 123),
+    89: (460, 512, 130, 138),
+    114: (540, 600, 156, 167),  # Largest possible cabinet size
+}
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+# Streamlit App
+st.title("Sunshine Cabinet Calculator")
+st.write("Find the largest cabinet configuration within the allowed square footage.")
 
-# Flask stuff:
-instance/
-.webassets-cache
+# User Input
+allowed_sq_ft = st.number_input("Enter the allowed square footage (in feet):", min_value=1.0, step=1.0)
+price_changer_type = st.radio("Select Price Changer Type:", ["2", "4"])
 
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-.pybuilder/
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# UV
-#   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#uv.lock
-
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
-
-# pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#pdm.lock
-#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
-#   in version control.
-#   https://pdm.fming.dev/latest/usage/project/#working-with-version-control
-.pdm.toml
-.pdm-python
-.pdm-build/
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# PyCharm
-#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
-
-# PyPI configuration file
-.pypirc
+# Calculate when user clicks the button
+if st.button("Calculate"):
+    result = calculate_cabinet_and_digits(allowed_sq_ft, digit_ranges, price_changer_type=price_changer_type)
+    
+    if result:
+        st.success(f"**Largest Configuration Found:**")
+        st.write(f"Digit Size: **{result['digit_size']}\"**")
+        st.write(f"Sunshine Cabinet: **{result['sunshine_width']}\" wide**, **{result['sunshine_height']}\" tall**")
+        st.write(f"Maverik Cabinet: **{result['maverik_width']}\" wide**, **{result['maverik_height']}\" tall**")
+        st.write(f"Total Square Footage Used: **{result['total_sq_ft_used']} sq ft**")
+        st.write(f"Leftover Square Footage: **{result['leftover_sq_ft']} sq ft**")
+    else:
+        st.error("No feasible cabinet size found within the constraints.")
