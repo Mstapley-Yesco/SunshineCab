@@ -9,6 +9,26 @@ def calculate_cabinet_and_digits(allowed_sq_ft, digit_ranges, maverik_height_rat
         else:
             adjusted_digit_ranges[digit_size] = (min_width, max_width, min_height, max_height)
     
+    # Calculate square footage of the third cabinet if included
+    bonfire_sq_ft = 0
+    bonfire_height_ft = 0
+    bonfire_width = 0
+    if include_third_cabinet:
+        for digit_size, (min_width, max_width, min_height, max_height) in sorted(adjusted_digit_ranges.items(), key=lambda x: -x[0]):
+            for possible_height in [18, 30]:  # Try 18" first, then 30"
+                possible_height_ft = possible_height / 12
+                possible_sq_ft = max_width / 12 * possible_height_ft
+                if allowed_sq_ft - possible_sq_ft > 0:  # Check if this fits
+                    bonfire_width = max_width
+                    bonfire_height_ft = possible_height_ft
+                    bonfire_sq_ft = possible_sq_ft
+                    break
+            if bonfire_sq_ft > 0:
+                break
+
+    # Deduct the Bonfire Cabinet's square footage from allowed square footage
+    remaining_sq_ft = allowed_sq_ft - bonfire_sq_ft
+
     # Iterate over digit sizes, starting from the largest
     for digit_size, (min_width, max_width, min_height, max_height) in sorted(adjusted_digit_ranges.items(), key=lambda x: -x[0]):
         max_width_ft = max_width / 12
@@ -21,35 +41,21 @@ def calculate_cabinet_and_digits(allowed_sq_ft, digit_ranges, maverik_height_rat
         # Calculate Sunshine Cabinet square footage
         sunshine_sq_ft = max_width_ft * max_height_ft
 
-        # Total square footage without third cabinet
+        # Total square footage without the Bonfire Cabinet
         total_sq_ft = maverik_sq_ft + sunshine_sq_ft
 
-        # Check if a third cabinet fits
-        third_cabinet_height_ft = 0
-        third_cabinet_sq_ft = 0
-        if include_third_cabinet:
-            if total_sq_ft + (max_width_ft * (18 / 12)) <= allowed_sq_ft:
-                third_cabinet_height_ft = 18 / 12
-                third_cabinet_sq_ft = max_width_ft * third_cabinet_height_ft
-            elif total_sq_ft + (max_width_ft * (30 / 12)) <= allowed_sq_ft:
-                third_cabinet_height_ft = 30 / 12
-                third_cabinet_sq_ft = max_width_ft * third_cabinet_height_ft
-
-        # Update total square footage with third cabinet
-        total_sq_ft += third_cabinet_sq_ft
-        leftover_sq_ft = allowed_sq_ft - total_sq_ft
-
-        # Check if the total square footage fits
-        if total_sq_ft <= allowed_sq_ft:
+        # Check if Sunshine and Maverik Cabinets fit within the remaining square footage
+        if total_sq_ft <= remaining_sq_ft:
             return {
                 "digit_size": digit_size,
                 "sunshine_width": max_width,
                 "sunshine_height": max_height,
                 "maverik_width": max_width,
                 "maverik_height": maverik_height_ft * 12,
-                "third_cabinet_height": third_cabinet_height_ft * 12 if third_cabinet_height_ft > 0 else "Not Added",
-                "total_sq_ft_used": total_sq_ft,
-                "leftover_sq_ft": leftover_sq_ft
+                "bonfire_width": bonfire_width,
+                "bonfire_height": bonfire_height_ft * 12 if include_third_cabinet else "Not Added",
+                "total_sq_ft_used": total_sq_ft + bonfire_sq_ft,
+                "leftover_sq_ft": allowed_sq_ft - (total_sq_ft + bonfire_sq_ft)
             }
     
     # If no feasible configuration is found
@@ -80,7 +86,7 @@ st.write("Find the largest cabinet configuration within the allowed square foota
 # User Input
 allowed_sq_ft = st.number_input("Enter the allowed square footage (in feet):", min_value=1.0, step=1.0)
 price_changer_type = st.radio("Select Price Changer Type:", ["2", "4"])
-include_third_cabinet = st.checkbox("Add a Third Cabinet")
+include_third_cabinet = st.checkbox("Add Bonfire, Trucks & RV Cabinet")
 
 # Calculate when user clicks the button
 if st.button("Calculate"):
@@ -92,9 +98,8 @@ if st.button("Calculate"):
         st.write(f"Sunshine Cabinet: **{result['sunshine_width']}\" wide**, **{result['sunshine_height']}\" tall**")
         st.write(f"Maverik Cabinet: **{result['maverik_width']}\" wide**, **{result['maverik_height']}\" tall**")
         if include_third_cabinet:
-            st.write(f"Third Cabinet Height: **{result['third_cabinet_height']}\"**")
+            st.write(f"Bonfire, Trucks & RV Cabinet: **{result['bonfire_width']}\" wide**, **{result['bonfire_height']}\" tall**")
         st.write(f"Total Square Footage Used: **{result['total_sq_ft_used']} sq ft**")
         st.write(f"Leftover Square Footage: **{result['leftover_sq_ft']} sq ft**")
     else:
         st.error("No feasible cabinet size found within the constraints.")
-
