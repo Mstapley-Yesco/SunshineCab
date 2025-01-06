@@ -1,6 +1,6 @@
 import streamlit as st
 
-def calculate_cabinet_and_digits(allowed_sq_ft, digit_ranges, maverik_height_ratio=0.5, price_changer_type="2"):
+def calculate_cabinet_and_digits(allowed_sq_ft, digit_ranges, maverik_height_ratio=0.5, price_changer_type="2", include_third_cabinet=False):
     # Adjust digit ranges based on Price Changer type
     adjusted_digit_ranges = {}
     for digit_size, (min_width, max_width, min_height, max_height) in digit_ranges.items():
@@ -21,11 +21,25 @@ def calculate_cabinet_and_digits(allowed_sq_ft, digit_ranges, maverik_height_rat
         # Calculate Sunshine Cabinet square footage
         sunshine_sq_ft = max_width_ft * max_height_ft
 
-        # Total square footage
+        # Total square footage without third cabinet
         total_sq_ft = maverik_sq_ft + sunshine_sq_ft
+
+        # Check if a third cabinet fits
+        third_cabinet_height_ft = 0
+        third_cabinet_sq_ft = 0
+        if include_third_cabinet:
+            if total_sq_ft + (max_width_ft * (18 / 12)) <= allowed_sq_ft:
+                third_cabinet_height_ft = 18 / 12
+                third_cabinet_sq_ft = max_width_ft * third_cabinet_height_ft
+            elif total_sq_ft + (max_width_ft * (30 / 12)) <= allowed_sq_ft:
+                third_cabinet_height_ft = 30 / 12
+                third_cabinet_sq_ft = max_width_ft * third_cabinet_height_ft
+
+        # Update total square footage with third cabinet
+        total_sq_ft += third_cabinet_sq_ft
         leftover_sq_ft = allowed_sq_ft - total_sq_ft
 
-        # Check if it fits within allowed square footage
+        # Check if the total square footage fits
         if total_sq_ft <= allowed_sq_ft:
             return {
                 "digit_size": digit_size,
@@ -33,6 +47,7 @@ def calculate_cabinet_and_digits(allowed_sq_ft, digit_ranges, maverik_height_rat
                 "sunshine_height": max_height,
                 "maverik_width": max_width,
                 "maverik_height": maverik_height_ft * 12,
+                "third_cabinet_height": third_cabinet_height_ft * 12 if third_cabinet_height_ft > 0 else "Not Added",
                 "total_sq_ft_used": total_sq_ft,
                 "leftover_sq_ft": leftover_sq_ft
             }
@@ -65,17 +80,21 @@ st.write("Find the largest cabinet configuration within the allowed square foota
 # User Input
 allowed_sq_ft = st.number_input("Enter the allowed square footage (in feet):", min_value=1.0, step=1.0)
 price_changer_type = st.radio("Select Price Changer Type:", ["2", "4"])
+include_third_cabinet = st.checkbox("Add a Third Cabinet")
 
 # Calculate when user clicks the button
 if st.button("Calculate"):
-    result = calculate_cabinet_and_digits(allowed_sq_ft, digit_ranges, price_changer_type=price_changer_type)
+    result = calculate_cabinet_and_digits(allowed_sq_ft, digit_ranges, price_changer_type=price_changer_type, include_third_cabinet=include_third_cabinet)
     
     if result:
         st.success(f"**Largest Configuration Found:**")
         st.write(f"Digit Size: **{result['digit_size']}\"**")
         st.write(f"Sunshine Cabinet: **{result['sunshine_width']}\" wide**, **{result['sunshine_height']}\" tall**")
         st.write(f"Maverik Cabinet: **{result['maverik_width']}\" wide**, **{result['maverik_height']}\" tall**")
+        if include_third_cabinet:
+            st.write(f"Third Cabinet Height: **{result['third_cabinet_height']}\"**")
         st.write(f"Total Square Footage Used: **{result['total_sq_ft_used']} sq ft**")
         st.write(f"Leftover Square Footage: **{result['leftover_sq_ft']} sq ft**")
     else:
         st.error("No feasible cabinet size found within the constraints.")
+
