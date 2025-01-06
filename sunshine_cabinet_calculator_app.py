@@ -1,3 +1,31 @@
+import streamlit as st
+
+def calculate_cabinet_and_digits(allowed_sq_ft, digit_ranges, maverik_height_ratio=0.5, price_changer_type="2", include_third_cabinet=False):
+    # Adjust digit ranges based on Price Changer type
+    adjusted_digit_ranges = {}
+    for digit_size, (min_width, max_width, min_height, max_height) in digit_ranges.items():
+        if price_changer_type == "4":
+            adjusted_digit_ranges[digit_size] = (min_width, max_width, min_height * 2, max_height * 2)
+        else:
+            adjusted_digit_ranges[digit_size] = (min_width, max_width, min_height, max_height)
+
+    # Iterate over digit sizes, starting from the largest
+    for digit_size, (min_width, max_width, min_height, max_height) in sorted(adjusted_digit_ranges.items(), key=lambda x: -x[0]):
+        sunshine_width_ft = max_width / 12
+        sunshine_height_ft = max_height / 12
+
+        # Calculate Maverik Cabinet dimensions
+        maverik_height_ft = sunshine_width_ft * maverik_height_ratio
+        maverik_sq_ft = sunshine_width_ft * maverik_height_ft
+
+        # Calculate Sunshine Cabinet square footage
+        sunshine_sq_ft = sunshine_width_ft * sunshine_height_ft
+
+        # Total square footage without the Bonfire Cabinet
+        total_sq_ft = maverik_sq_ft + sunshine_sq_ft
+
+        # Calculate Bonfire Cabinet dimensions if included
+        bonfire_width_ft = sunshine_width_ft
         bonfire_height_ft = 0
         bonfire_sq_ft = 0
         if include_third_cabinet:
