@@ -8,54 +8,50 @@ def calculate_cabinet_and_digits(allowed_sq_ft, digit_ranges, maverik_height_rat
             adjusted_digit_ranges[digit_size] = (min_width, max_width, min_height * 2, max_height * 2)
         else:
             adjusted_digit_ranges[digit_size] = (min_width, max_width, min_height, max_height)
-    
-    # Calculate square footage of the third cabinet if included
-    bonfire_sq_ft = 0
-    bonfire_height_ft = 0
-    bonfire_width = 0
-    if include_third_cabinet:
-        for digit_size, (min_width, max_width, min_height, max_height) in sorted(adjusted_digit_ranges.items(), key=lambda x: -x[0]):
-            for possible_height in [18, 30]:  # Try 18" first, then 30"
-                possible_height_ft = possible_height / 12
-                possible_sq_ft = max_width / 12 * possible_height_ft
-                if allowed_sq_ft - possible_sq_ft > 0:  # Check if this fits
-                    bonfire_width = max_width
-                    bonfire_height_ft = possible_height_ft
-                    bonfire_sq_ft = possible_sq_ft
-                    break
-            if bonfire_sq_ft > 0:
-                break
-
-    # Deduct the Bonfire Cabinet's square footage from allowed square footage
-    remaining_sq_ft = allowed_sq_ft - bonfire_sq_ft
 
     # Iterate over digit sizes, starting from the largest
     for digit_size, (min_width, max_width, min_height, max_height) in sorted(adjusted_digit_ranges.items(), key=lambda x: -x[0]):
-        max_width_ft = max_width / 12
-        max_height_ft = max_height / 12
+        sunshine_width_ft = max_width / 12
+        sunshine_height_ft = max_height / 12
 
         # Calculate Maverik Cabinet dimensions
-        maverik_height_ft = max_width_ft * maverik_height_ratio
-        maverik_sq_ft = max_width_ft * maverik_height_ft
+        maverik_height_ft = sunshine_width_ft * maverik_height_ratio
+        maverik_sq_ft = sunshine_width_ft * maverik_height_ft
 
         # Calculate Sunshine Cabinet square footage
-        sunshine_sq_ft = max_width_ft * max_height_ft
+        sunshine_sq_ft = sunshine_width_ft * sunshine_height_ft
 
         # Total square footage without the Bonfire Cabinet
         total_sq_ft = maverik_sq_ft + sunshine_sq_ft
 
-        # Check if Sunshine and Maverik Cabinets fit within the remaining square footage
-        if total_sq_ft <= remaining_sq_ft:
+        # Calculate Bonfire Cabinet dimensions if included
+        bonfire_width_ft = sunshine_width_ft
+        bonfire_height_ft = 0
+        bonfire_sq_ft = 0
+        if include_third_cabinet:
+            if total_sq_ft + (bonfire_width_ft * (18 / 12)) <= allowed_sq_ft:  # Check if 18" height fits
+                bonfire_height_ft = 18 / 12
+                bonfire_sq_ft = bonfire_width_ft * bonfire_height_ft
+            elif total_sq_ft + (bonfire_width_ft * (30 / 12)) <= allowed_sq_ft:  # Check if 30" height fits
+                bonfire_height_ft = 30 / 12
+                bonfire_sq_ft = bonfire_width_ft * bonfire_height_ft
+
+        # Update total square footage with Bonfire Cabinet
+        total_sq_ft += bonfire_sq_ft
+        leftover_sq_ft = allowed_sq_ft - total_sq_ft
+
+        # Check if everything fits within the allowed square footage
+        if total_sq_ft <= allowed_sq_ft:
             return {
                 "digit_size": digit_size,
                 "sunshine_width": max_width,
                 "sunshine_height": max_height,
                 "maverik_width": max_width,
                 "maverik_height": maverik_height_ft * 12,
-                "bonfire_width": bonfire_width,
-                "bonfire_height": bonfire_height_ft * 12 if include_third_cabinet else "Not Added",
-                "total_sq_ft_used": total_sq_ft + bonfire_sq_ft,
-                "leftover_sq_ft": allowed_sq_ft - (total_sq_ft + bonfire_sq_ft)
+                "bonfire_width": bonfire_width_ft * 12,  # Convert width back to inches
+                "bonfire_height": bonfire_height_ft * 12 if bonfire_height_ft > 0 else "Not Added",
+                "total_sq_ft_used": total_sq_ft,
+                "leftover_sq_ft": leftover_sq_ft
             }
     
     # If no feasible configuration is found
