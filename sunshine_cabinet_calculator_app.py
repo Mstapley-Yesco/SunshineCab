@@ -1,6 +1,8 @@
 import streamlit as st
 
-def calculate_cabinet_and_digits(allowed_sq_ft, digit_ranges, maverik_height_ratio=0.5, price_changer_type="2", include_third_cabinet=False):
+def calculate_cabinet_and_digits(
+    allowed_sq_ft, digit_ranges, maverik_height_ratio=0.5, price_changer_type="2", include_third_cabinet=False, separate_cabinets=False
+):
     # Adjust digit ranges based on Price Changer type
     adjusted_digit_ranges = {}
     for digit_size, (min_width, max_width, min_height, max_height) in digit_ranges.items():
@@ -15,8 +17,15 @@ def calculate_cabinet_and_digits(allowed_sq_ft, digit_ranges, maverik_height_rat
         sunshine_height_ft = max_height / 12
 
         # Calculate Maverik Cabinet dimensions
-        maverik_height_ft = sunshine_width_ft * maverik_height_ratio
-        maverik_sq_ft = sunshine_width_ft * maverik_height_ft
+        if separate_cabinets:
+            # Adjust Maverik Cabinet width and height based on the 13:11 ratio
+            maverik_width_ft = sunshine_width_ft * (13 / 11)
+        else:
+            # Maverik Cabinet width is the same as Sunshine Cabinet width
+            maverik_width_ft = sunshine_width_ft
+        
+        maverik_height_ft = maverik_width_ft * maverik_height_ratio
+        maverik_sq_ft = maverik_width_ft * maverik_height_ft
 
         # Calculate Sunshine Cabinet square footage
         sunshine_sq_ft = sunshine_width_ft * sunshine_height_ft
@@ -51,9 +60,9 @@ def calculate_cabinet_and_digits(allowed_sq_ft, digit_ranges, maverik_height_rat
                 "digit_size": digit_size,
                 "sunshine_width": max_width,
                 "sunshine_height": max_height,
-                "maverik_width": max_width,
-                "maverik_height": maverik_height_ft * 12,
-                "bonfire_width": bonfire_width_ft * 12,  # Convert width back to inches
+                "maverik_width": maverik_width_ft * 12,  # Convert Maverik width back to inches
+                "maverik_height": maverik_height_ft * 12,  # Convert Maverik height back to inches
+                "bonfire_width": bonfire_width_ft * 12,  # Convert Bonfire width back to inches
                 "bonfire_height": bonfire_height_ft * 12 if bonfire_height_ft > 0 else "Not Added",
                 "total_sq_ft_used": total_sq_ft,
                 "leftover_sq_ft": leftover_sq_ft
@@ -88,10 +97,13 @@ st.write("Find the largest cabinet configuration within the allowed square foota
 allowed_sq_ft = st.number_input("Enter the allowed square footage (in feet):", min_value=1.0, step=1.0)
 price_changer_type = st.radio("Select Price Changer Type:", ["2", "4"])
 include_third_cabinet = st.checkbox("Add Bonfire, Trucks & RV Cabinet")
+separate_cabinets = st.checkbox("Separate Cabinets (Maverik Cabinet width is 13:11 ratio to Sunshine Cabinet width)")
 
 # Calculate when user clicks the button
 if st.button("Calculate"):
-    result = calculate_cabinet_and_digits(allowed_sq_ft, digit_ranges, price_changer_type=price_changer_type, include_third_cabinet=include_third_cabinet)
+    result = calculate_cabinet_and_digits(
+        allowed_sq_ft, digit_ranges, price_changer_type=price_changer_type, include_third_cabinet=include_third_cabinet, separate_cabinets=separate_cabinets
+    )
     
     if result:
         st.success(f"**Largest Configuration Found:**")
