@@ -97,7 +97,7 @@ st.write("Find the largest cabinet configuration within the allowed square foota
 allowed_sq_ft = st.number_input("Enter the allowed square footage (in feet):", min_value=1.0, step=1.0)
 price_changer_type = st.radio("Select Price Changer Type:", ["2", "4"])
 include_third_cabinet = st.checkbox("Add Bonfire, Trucks & RV Cabinet")
-separate_cabinets = st.checkbox("Separate Cabinets (Maverik Cabinet width is 13:11 ratio to Sunshine Cabinet width)")
+separate_cabinets = st.checkbox("Separate Cabinets")  # Text updated here to remove explanation
 
 # Calculate when user clicks the button
 if st.button("Calculate"):
