@@ -29,12 +29,17 @@ def calculate_cabinet_and_digits(allowed_sq_ft, digit_ranges, maverik_height_rat
         bonfire_height_ft = 0
         bonfire_sq_ft = 0
         if include_third_cabinet:
-            if total_sq_ft + (bonfire_width_ft * (18 / 12)) <= allowed_sq_ft:  # Check if 18" height fits
-                bonfire_height_ft = 18 / 12
-                bonfire_sq_ft = bonfire_width_ft * bonfire_height_ft
-            elif total_sq_ft + (bonfire_width_ft * (30 / 12)) <= allowed_sq_ft:  # Check if 30" height fits
+            # First try 30" Bonfire Cabinet
+            if total_sq_ft + (bonfire_width_ft * (30 / 12)) <= allowed_sq_ft:
                 bonfire_height_ft = 30 / 12
                 bonfire_sq_ft = bonfire_width_ft * bonfire_height_ft
+            # If 30" doesn't fit, try 18"
+            elif total_sq_ft + (bonfire_width_ft * (18 / 12)) <= allowed_sq_ft:
+                bonfire_height_ft = 18 / 12
+                bonfire_sq_ft = bonfire_width_ft * bonfire_height_ft
+            # If neither fits, reduce Sunshine Cabinet size and retry
+            else:
+                continue  # Move to the next (smaller) digit size
 
         # Update total square footage with Bonfire Cabinet
         total_sq_ft += bonfire_sq_ft
