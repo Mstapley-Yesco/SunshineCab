@@ -11,9 +11,7 @@ def calculate_cabinet_and_digits(
         else:
             adjusted_digit_ranges[digit_size] = (min_width, max_width, min_height, max_height)
 
-    best_fit = None  # Stores the best (largest) fit found
-
-    # Iterate over digit sizes, starting from the LARGEST
+    # Iterate over digit sizes, starting from the LARGEST and stopping at the first valid one
     for digit_size, (min_width, max_width, min_height, max_height) in sorted(adjusted_digit_ranges.items(), key=lambda x: -x[0]):
         sunshine_width_ft = max_width / 12
         sunshine_height_ft = max_height / 12
@@ -56,23 +54,22 @@ def calculate_cabinet_and_digits(
         total_sq_ft += bonfire_sq_ft
         leftover_sq_ft = allowed_sq_ft - total_sq_ft
 
-        # If this configuration fits, store it as a candidate but ONLY if it's the LARGEST so far
+        # If this configuration fits, RETURN IMMEDIATELY (taking the largest that fits)
         if total_sq_ft <= allowed_sq_ft:
-            if best_fit is None or digit_size > best_fit["digit_size"]:
-                best_fit = {
-                    "digit_size": digit_size,
-                    "sunshine_width": max_width,
-                    "sunshine_height": max_height,
-                    "maverik_width": maverik_width_ft * 12,  # Convert Maverik width back to inches
-                    "maverik_height": maverik_height_ft * 12,  # Convert Maverik height back to inches
-                    "bonfire_width": bonfire_width_ft * 12,  # Convert Bonfire width back to inches
-                    "bonfire_height": bonfire_height_ft * 12 if bonfire_height_ft > 0 else "Not Added",
-                    "total_sq_ft_used": total_sq_ft,
-                    "leftover_sq_ft": leftover_sq_ft
-                }
-
-    # Return the LARGEST valid configuration found
-    return best_fit if best_fit else None
+            return {
+                "digit_size": digit_size,
+                "sunshine_width": max_width,
+                "sunshine_height": max_height,
+                "maverik_width": maverik_width_ft * 12,  # Convert Maverik width back to inches
+                "maverik_height": maverik_height_ft * 12,  # Convert Maverik height back to inches
+                "bonfire_width": bonfire_width_ft * 12,  # Convert Bonfire width back to inches
+                "bonfire_height": bonfire_height_ft * 12 if bonfire_height_ft > 0 else "Not Added",
+                "total_sq_ft_used": total_sq_ft,
+                "leftover_sq_ft": leftover_sq_ft
+            }
+    
+    # If no feasible configuration is found
+    return None
 
 # Define digit ranges: (min_width, max_width, min_height, max_height) in inches
 digit_ranges = {
