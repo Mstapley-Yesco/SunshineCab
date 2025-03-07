@@ -11,9 +11,9 @@ def calculate_cabinet_and_digits(
         else:
             adjusted_digit_ranges[digit_size] = (min_width, max_width, min_height, max_height)
 
-    best_fit = None  # Stores the best (largest) fit
-    
-    # Iterate over digit sizes, starting from the LARGEST and testing all possibilities
+    best_fit = None  # Stores the best (largest) fit found
+
+    # Iterate over digit sizes, starting from the LARGEST
     for digit_size, (min_width, max_width, min_height, max_height) in sorted(adjusted_digit_ranges.items(), key=lambda x: -x[0]):
         sunshine_width_ft = max_width / 12
         sunshine_height_ft = max_height / 12
@@ -56,7 +56,7 @@ def calculate_cabinet_and_digits(
         total_sq_ft += bonfire_sq_ft
         leftover_sq_ft = allowed_sq_ft - total_sq_ft
 
-        # If this configuration fits, store it as a candidate
+        # If this configuration fits, store it as a candidate (but keep looking for larger sizes)
         if total_sq_ft <= allowed_sq_ft:
             best_fit = {
                 "digit_size": digit_size,
@@ -70,8 +70,8 @@ def calculate_cabinet_and_digits(
                 "leftover_sq_ft": leftover_sq_ft
             }
 
-    # Return the LARGEST valid configuration
-    return best_fit
+    # Return the LARGEST valid configuration found
+    return best_fit if best_fit else None
 
 # Define digit ranges: (min_width, max_width, min_height, max_height) in inches
 digit_ranges = {
