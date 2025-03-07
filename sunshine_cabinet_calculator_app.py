@@ -20,7 +20,7 @@ def calculate_cabinet_and_digits(
 
         # Calculate Maverik Cabinet dimensions
         if separate_cabinets:
-            # Adjust Maverik Cabinet width and height based on the 13:11 ratio
+            # Adjust Maverik Cabinet width based on the 13:11 ratio
             maverik_width_ft = sunshine_width_ft * (13 / 11)
         else:
             # Maverik Cabinet width is the same as Sunshine Cabinet width
@@ -56,19 +56,20 @@ def calculate_cabinet_and_digits(
         total_sq_ft += bonfire_sq_ft
         leftover_sq_ft = allowed_sq_ft - total_sq_ft
 
-        # If this configuration fits, store it as a candidate (but keep looking for larger sizes)
+        # If this configuration fits, store it as a candidate but ONLY if it's the LARGEST so far
         if total_sq_ft <= allowed_sq_ft:
-            best_fit = {
-                "digit_size": digit_size,
-                "sunshine_width": max_width,
-                "sunshine_height": max_height,
-                "maverik_width": maverik_width_ft * 12,  # Convert Maverik width back to inches
-                "maverik_height": maverik_height_ft * 12,  # Convert Maverik height back to inches
-                "bonfire_width": bonfire_width_ft * 12,  # Convert Bonfire width back to inches
-                "bonfire_height": bonfire_height_ft * 12 if bonfire_height_ft > 0 else "Not Added",
-                "total_sq_ft_used": total_sq_ft,
-                "leftover_sq_ft": leftover_sq_ft
-            }
+            if best_fit is None or digit_size > best_fit["digit_size"]:
+                best_fit = {
+                    "digit_size": digit_size,
+                    "sunshine_width": max_width,
+                    "sunshine_height": max_height,
+                    "maverik_width": maverik_width_ft * 12,  # Convert Maverik width back to inches
+                    "maverik_height": maverik_height_ft * 12,  # Convert Maverik height back to inches
+                    "bonfire_width": bonfire_width_ft * 12,  # Convert Bonfire width back to inches
+                    "bonfire_height": bonfire_height_ft * 12 if bonfire_height_ft > 0 else "Not Added",
+                    "total_sq_ft_used": total_sq_ft,
+                    "leftover_sq_ft": leftover_sq_ft
+                }
 
     # Return the LARGEST valid configuration found
     return best_fit if best_fit else None
