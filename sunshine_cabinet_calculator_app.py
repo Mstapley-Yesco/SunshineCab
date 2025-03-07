@@ -14,7 +14,7 @@ def calculate_cabinet_and_digits(
     # Iterate over digit sizes, starting from the LARGEST and stopping at the first valid one
     for digit_size, (min_width, max_width, min_height, max_height) in sorted(adjusted_digit_ranges.items(), key=lambda x: -x[0]):
         sunshine_width_ft = max_width / 12
-        sunshine_height_ft = max_height / 12
+        sunshine_height_ft = max_height / 12  # Adjusted for 4 price changers if needed
 
         # Calculate Maverik Cabinet dimensions
         if separate_cabinets:
