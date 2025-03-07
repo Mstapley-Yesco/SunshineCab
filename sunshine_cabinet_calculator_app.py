@@ -11,7 +11,9 @@ def calculate_cabinet_and_digits(
         else:
             adjusted_digit_ranges[digit_size] = (min_width, max_width, min_height, max_height)
 
-    # Iterate over digit sizes, starting from the largest
+    best_fit = None  # Stores the best (largest) fit
+    
+    # Iterate over digit sizes, starting from the LARGEST and testing all possibilities
     for digit_size, (min_width, max_width, min_height, max_height) in sorted(adjusted_digit_ranges.items(), key=lambda x: -x[0]):
         sunshine_width_ft = max_width / 12
         sunshine_height_ft = max_height / 12
@@ -54,9 +56,9 @@ def calculate_cabinet_and_digits(
         total_sq_ft += bonfire_sq_ft
         leftover_sq_ft = allowed_sq_ft - total_sq_ft
 
-        # Check if everything fits within the allowed square footage
+        # If this configuration fits, store it as a candidate
         if total_sq_ft <= allowed_sq_ft:
-            return {
+            best_fit = {
                 "digit_size": digit_size,
                 "sunshine_width": max_width,
                 "sunshine_height": max_height,
@@ -67,9 +69,9 @@ def calculate_cabinet_and_digits(
                 "total_sq_ft_used": total_sq_ft,
                 "leftover_sq_ft": leftover_sq_ft
             }
-    
-    # If no feasible configuration is found
-    return None
+
+    # Return the LARGEST valid configuration
+    return best_fit
 
 # Define digit ranges: (min_width, max_width, min_height, max_height) in inches
 digit_ranges = {
@@ -97,7 +99,7 @@ st.write("Find the largest cabinet configuration within the allowed square foota
 allowed_sq_ft = st.number_input("Enter the allowed square footage (in feet):", min_value=1.0, step=1.0)
 price_changer_type = st.radio("Select Price Changer Type:", ["2", "4"])
 include_third_cabinet = st.checkbox("Add Bonfire, Trucks & RV Cabinet")
-separate_cabinets = st.checkbox("Separate Cabinets")  # Text updated here to remove explanation
+separate_cabinets = st.checkbox("Separate Cabinets")
 
 # Calculate when user clicks the button
 if st.button("Calculate"):
