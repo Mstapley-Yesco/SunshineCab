@@ -66,7 +66,3 @@ def calculate_optimal_cabinet_size(
 optimal_result = calculate_optimal_cabinet_size(130, digit_ranges, price_changer_type="4")
 
 optimal_result
-
-        st.write(f"Leftover Square Footage: **{result['leftover_sq_ft']} sq ft**")
-    else:
-        st.error("No feasible cabinet size found within the constraints.")
