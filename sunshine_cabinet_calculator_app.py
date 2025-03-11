@@ -7,19 +7,19 @@ def calculate_cabinet_and_digits(
     adjusted_digit_ranges = {}
     for digit_size, (min_width, max_width, min_height, max_height) in digit_ranges.items():
         if price_changer_type == "4":
-            adjusted_digit_ranges[digit_size] = (min_width, max_width, min_height * 2, max_height * 2)
+            adjusted_digit_ranges[digit_size] = (min_width, max_width, min_height * 2, max_height * 2)  # Double height
         else:
             adjusted_digit_ranges[digit_size] = (min_width, max_width, min_height, max_height)
 
     # Iterate over digit sizes, starting from the largest
-    best_config = None  # Store the best configuration
+    best_config = None
     for digit_size, (min_width, max_width, min_height, max_height) in sorted(adjusted_digit_ranges.items(), key=lambda x: -x[0]):
         sunshine_width_ft = max_width / 12
         sunshine_height_ft = max_height / 12
 
-        # Calculate Maverik Cabinet dimensions
+        # Adjust Maverik Cabinet width based on configuration
         if separate_cabinets:
-            maverik_width_ft = sunshine_width_ft * (13 / 11)
+            maverik_width_ft = sunshine_width_ft * (13 / 11)  # Adjust for separate cabinet ratio
         else:
             maverik_width_ft = sunshine_width_ft
         
@@ -37,7 +37,6 @@ def calculate_cabinet_and_digits(
         # If Bonfire Cabinet is included, check if it fits
         if include_third_cabinet:
             bonfire_width_ft = sunshine_width_ft
-            # Try adding the largest possible Bonfire height
             if total_sq_ft + (bonfire_width_ft * (30 / 12)) <= allowed_sq_ft:
                 bonfire_height_ft = 30 / 12
                 bonfire_sq_ft = bonfire_width_ft * bonfire_height_ft
@@ -49,7 +48,7 @@ def calculate_cabinet_and_digits(
         total_sq_ft += bonfire_sq_ft
         leftover_sq_ft = allowed_sq_ft - total_sq_ft
 
-        # If this configuration fits, update the best configuration found
+        # Ensure total square footage doesn't exceed the allowed limit
         if total_sq_ft <= allowed_sq_ft:
             best_config = {
                 "digit_size": digit_size,
@@ -62,7 +61,7 @@ def calculate_cabinet_and_digits(
                 "total_sq_ft_used": total_sq_ft,
                 "leftover_sq_ft": leftover_sq_ft
             }
-            break  # Stop loop once we find the largest fitting size
+            break  # Stop at the largest fitting size
 
     return best_config
 
