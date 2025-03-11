@@ -12,16 +12,15 @@ def calculate_cabinet_and_digits(
             adjusted_digit_ranges[digit_size] = (min_width, max_width, min_height, max_height)
 
     # Iterate over digit sizes, starting from the largest
+    best_config = None  # Store the best configuration
     for digit_size, (min_width, max_width, min_height, max_height) in sorted(adjusted_digit_ranges.items(), key=lambda x: -x[0]):
         sunshine_width_ft = max_width / 12
         sunshine_height_ft = max_height / 12
 
         # Calculate Maverik Cabinet dimensions
         if separate_cabinets:
-            # Adjust Maverik Cabinet width and height based on the 13:11 ratio
             maverik_width_ft = sunshine_width_ft * (13 / 11)
         else:
-            # Maverik Cabinet width is the same as Sunshine Cabinet width
             maverik_width_ft = sunshine_width_ft
         
         maverik_height_ft = maverik_width_ft * maverik_height_ratio
@@ -30,46 +29,42 @@ def calculate_cabinet_and_digits(
         # Calculate Sunshine Cabinet square footage
         sunshine_sq_ft = sunshine_width_ft * sunshine_height_ft
 
-        # Total square footage without the Bonfire Cabinet
+        # Start with only Maverik and Sunshine Cabinets
         total_sq_ft = maverik_sq_ft + sunshine_sq_ft
-
-        # Calculate Bonfire Cabinet dimensions if included
-        bonfire_width_ft = sunshine_width_ft
         bonfire_height_ft = 0
         bonfire_sq_ft = 0
+
+        # If Bonfire Cabinet is included, check if it fits
         if include_third_cabinet:
-            # First try 30" Bonfire Cabinet
+            bonfire_width_ft = sunshine_width_ft
+            # Try adding the largest possible Bonfire height
             if total_sq_ft + (bonfire_width_ft * (30 / 12)) <= allowed_sq_ft:
                 bonfire_height_ft = 30 / 12
                 bonfire_sq_ft = bonfire_width_ft * bonfire_height_ft
-            # If 30" doesn't fit, try 18"
             elif total_sq_ft + (bonfire_width_ft * (18 / 12)) <= allowed_sq_ft:
                 bonfire_height_ft = 18 / 12
                 bonfire_sq_ft = bonfire_width_ft * bonfire_height_ft
-            # If neither fits, reduce Sunshine Cabinet size and retry
-            else:
-                continue  # Move to the next (smaller) digit size
-
-        # Update total square footage with Bonfire Cabinet
+        
+        # Update total square footage
         total_sq_ft += bonfire_sq_ft
         leftover_sq_ft = allowed_sq_ft - total_sq_ft
 
-        # Check if everything fits within the allowed square footage
+        # If this configuration fits, update the best configuration found
         if total_sq_ft <= allowed_sq_ft:
-            return {
+            best_config = {
                 "digit_size": digit_size,
                 "sunshine_width": max_width,
                 "sunshine_height": max_height,
-                "maverik_width": maverik_width_ft * 12,  # Convert Maverik width back to inches
-                "maverik_height": maverik_height_ft * 12,  # Convert Maverik height back to inches
-                "bonfire_width": bonfire_width_ft * 12,  # Convert Bonfire width back to inches
+                "maverik_width": maverik_width_ft * 12,  # Convert back to inches
+                "maverik_height": maverik_height_ft * 12,
+                "bonfire_width": sunshine_width_ft * 12,
                 "bonfire_height": bonfire_height_ft * 12 if bonfire_height_ft > 0 else "Not Added",
                 "total_sq_ft_used": total_sq_ft,
                 "leftover_sq_ft": leftover_sq_ft
             }
-    
-    # If no feasible configuration is found
-    return None
+            break  # Stop loop once we find the largest fitting size
+
+    return best_config
 
 # Define digit ranges: (min_width, max_width, min_height, max_height) in inches
 digit_ranges = {
@@ -97,7 +92,7 @@ st.write("Find the largest cabinet configuration within the allowed square foota
 allowed_sq_ft = st.number_input("Enter the allowed square footage (in feet):", min_value=1.0, step=1.0)
 price_changer_type = st.radio("Select Price Changer Type:", ["2", "4"])
 include_third_cabinet = st.checkbox("Add Bonfire, Trucks & RV Cabinet")
-separate_cabinets = st.checkbox("Separate Cabinets")  # Text updated here to remove explanation
+separate_cabinets = st.checkbox("Separate Cabinets")
 
 # Calculate when user clicks the button
 if st.button("Calculate"):
